@@ -21,7 +21,7 @@ const configSchema = z.object({
   ADMIN_EMAIL: z.string(),
   ADMIN_PASSWORD: z.string(),
   ADMIN_NAME: z.string(),
-  ADMIN_PHONENUMBER: z.string(),
+  ADMIN_PHONE_NUMBER: z.string(),
 });
 
 const configService = configSchema.safeParse(process.env);

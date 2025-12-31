@@ -41,7 +41,7 @@ const main = async () => {
       name: envConfig.ADMIN_NAME,
       email: envConfig.ADMIN_EMAIL,
       password: await hashing.hashPassword(envConfig.ADMIN_PASSWORD),
-      phoneNumber: envConfig.ADMIN_PHONENUMBER,
+      phoneNumber: envConfig.ADMIN_PHONE_NUMBER,
       roleId: adminRole.id,
     },
   });
