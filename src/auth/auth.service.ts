@@ -3,37 +3,30 @@ import { ConflictException, Injectable, UnprocessableEntityException } from '@ne
 import { PrismaService } from 'src/shared/prisma.service';
 import { RolesService } from './roles.service';
 import { TokenService } from 'src/shared/token.service';
-import { RefreshTokenBodyDTO, RegisterBodyDto } from './auth.dto';
+import { RefreshTokenBodyDTO } from './auth.dto';
+import { RegisterBodyType } from './auth.model';
+import { AuthRepository } from './auth.repo';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prismaService: PrismaService,
+    private readonly authRepository: AuthRepository,
     private readonly roleService: RolesService,
     private readonly tokenService: TokenService,
     private readonly hashingService: HashingService,
   ) {}
-
-  async register(body: RegisterBodyDto) {
+  async register(body: RegisterBodyType) {
     const clientRoleId = await this.roleService.getClientRoleId();
     const hashedPassword = await this.hashingService.hashPassword(body.password);
+    const { confirmPassword: _, ...registerData } = body;
 
     try {
-      const user = await this.prismaService.user.create({
-        data: {
-          name: body.name,
-          email: body.email,
-          password: hashedPassword,
-          phoneNumber: body.phoneNumber,
-          roleId: clientRoleId,
-        },
-        omit: {
-          password: true,
-          totpSecret: true,
-        },
+      return await this.authRepository.createUser({
+        ...registerData,
+        password: hashedPassword,
+        roleId: clientRoleId,
       });
-
-      return user;
     } catch (e) {
       if (e.meta?.target?.includes('email')) {
         throw new ConflictException('Email already exists');
