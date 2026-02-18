@@ -4,7 +4,7 @@ import { PrismaService } from 'src/shared/prisma.service';
 import { RolesService } from './roles.service';
 import { TokenService } from 'src/shared/token.service';
 import { RefreshTokenBodyDTO } from './auth.dto';
-import { RegisterBodyType } from './auth.model';
+import { RegisterBodyType, SendOTPBodyType } from './auth.model';
 import { AuthRepository } from './auth.repo';
 
 @Injectable()
@@ -28,12 +28,17 @@ export class AuthService {
         roleId: clientRoleId,
       });
     } catch (e) {
+      console.log(e);
       if (e.meta?.target?.includes('email')) {
         throw new ConflictException('Email already exists');
       }
 
       throw e;
     }
+  }
+
+  sendOtp(body: SendOTPBodyType) {
+    return body;
   }
 
   async login(body: any) {
