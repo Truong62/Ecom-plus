@@ -6,6 +6,12 @@ import { TokenService } from 'src/shared/token.service';
 import { RefreshTokenBodyDTO } from './auth.dto';
 import { RegisterBodyType, SendOTPBodyType } from './auth.model';
 import { AuthRepository } from './auth.repo';
+import { SharedUserRepository } from 'src/shared/repository/shared-user.repo';
+import { genCodeOTP } from 'src/shared/helpers';
+import { addMilliseconds } from 'date-fns';
+import ms from 'ms';
+import envConfig from 'src/shared/config';
+import { TypeOfVerificationCode } from 'src/shared/constants/auth.constants';
 
 @Injectable()
 export class AuthService {
@@ -15,11 +21,36 @@ export class AuthService {
     private readonly roleService: RolesService,
     private readonly tokenService: TokenService,
     private readonly hashingService: HashingService,
+    private readonly sharedUserRepository: SharedUserRepository,
   ) {}
   async register(body: RegisterBodyType) {
+    const verifiCode = await this.authRepository.findVerificationCode({
+      email: body.email,
+      code: body.code,
+      type: TypeOfVerificationCode.REGISTER,
+    });
+
+    if (!verifiCode) {
+      throw new UnprocessableEntityException([
+        {
+          message: 'Invalid or expired verification code',
+          path: 'code',
+        },
+      ]);
+    }
+
+    if (verifiCode.expiresAt < new Date()) {
+      throw new UnprocessableEntityException([
+        {
+          message: 'Verification code has expired',
+          path: 'code',
+        },
+      ]);
+    }
+
     const clientRoleId = await this.roleService.getClientRoleId();
     const hashedPassword = await this.hashingService.hashPassword(body.password);
-    const { confirmPassword: _, ...registerData } = body;
+    const { confirmPassword: _, code: __, ...registerData } = body;
 
     try {
       return await this.authRepository.createUser({
@@ -37,8 +68,27 @@ export class AuthService {
     }
   }
 
-  sendOtp(body: SendOTPBodyType) {
-    return body;
+  async sendOtp(body: SendOTPBodyType) {
+    const user = await this.sharedUserRepository.findUnique({ email: body.email });
+
+    if (user) {
+      throw new UnprocessableEntityException([
+        {
+          message: 'Email already exists',
+          path: 'email',
+        },
+      ]);
+    }
+
+    const code = genCodeOTP();
+    const verificationCode = await this.authRepository.createVerificationCode({
+      email: body.email,
+      code,
+      type: body.type,
+      expiresAt: addMilliseconds(new Date(), ms(envConfig.OTP_EXPIRES_IN)), // expires in 5 minutes
+    });
+
+    return verificationCode;
   }
 
   async login(body: any) {
@@ -119,7 +169,6 @@ export class AuthService {
 
   async logout(body: RefreshTokenBodyDTO) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [_, existingToken] = await Promise.all([
         this.tokenService.verifyRefreshToken(body.refreshToken),
         this.prismaService.refreshToken.findUnique({

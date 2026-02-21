@@ -1,31 +1,15 @@
 import { TypeOfVerificationCode } from 'src/shared/constants/auth.constants';
+import { UserSchema } from 'src/shared/models/shared-user.model';
 import z from 'zod';
 
-const UserStatus = {
-  ACTIVE: 'ACTIVE',
-  INACTIVE: 'INACTIVE',
-  BLOCKED: 'BLOCKED',
-};
-
-const UserSchema = z.object({
+export const VerificationCode = z.object({
   id: z.number(),
   email: z.string().email(),
-  name: z.string().min(1).max(100),
-  phoneNumber: z.string().min(9).max(16),
-  avatar: z.string().nullable(),
-  status: z.enum(UserStatus),
-  totpSecret: z.string().nullable(),
-  roleId: z.number().positive(),
-  createdById: z.number().nullable(),
-  updatedById: z.number().nullable(),
-  deletedById: z.number().nullable(),
-  deletedAt: z.date().nullable(),
-  password: z.string().min(6).max(100),
+  code: z.string(),
+  type: z.enum(TypeOfVerificationCode),
+  expiresAt: z.date(),
   createdAt: z.date(),
-  updatedAt: z.date(),
 });
-
-export type User = z.infer<typeof UserSchema>;
 
 export const RegisterBodySchema = UserSchema.pick({
   name: true,
@@ -35,6 +19,7 @@ export const RegisterBodySchema = UserSchema.pick({
 })
   .extend({
     confirmPassword: z.string().min(6).max(100),
+    code: VerificationCode.shape.code,
   })
   .strict()
   .superRefine(({ confirmPassword, password }, ctx) => {
@@ -54,15 +39,6 @@ export const RegisterResponseSchema = UserSchema.omit({
   totpSecret: true,
 });
 
-export const VerificationCode = z.object({
-  id: z.number(),
-  email: z.string().email(),
-  code: z.string(),
-  type: z.enum(TypeOfVerificationCode),
-  expiresAt: z.date(),
-  createdAt: z.date(),
-});
-
 export type VerificationCodeType = z.infer<typeof VerificationCode>;
 
 export const SendOTPBodySchema = VerificationCode.pick({
@@ -71,3 +47,4 @@ export const SendOTPBodySchema = VerificationCode.pick({
 });
 
 export type SendOTPBodyType = z.infer<typeof SendOTPBodySchema>;
+export type TypeOfVerificationCode = (typeof TypeOfVerificationCode)[keyof typeof TypeOfVerificationCode];

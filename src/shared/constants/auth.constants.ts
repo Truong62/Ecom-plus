@@ -22,3 +22,9 @@ export const TypeOfVerificationCode = {
   LOGIN: 'LOGIN',
   DISABLE_2FA: 'DISABLE_2FA',
 } as const;
+
+export const UserStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  BLOCKED: 'BLOCKED',
+};
