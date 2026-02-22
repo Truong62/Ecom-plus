@@ -8,6 +8,7 @@ import { AccessTokenGuard } from './guards/access-token.guard';
 import { ApiKeyGuard } from './guards/api-key.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { SharedUserRepository } from './repository/shared-user.repo';
+import { EmailService } from './email.service';
 
 @Global()
 @Module({
@@ -17,6 +18,7 @@ import { SharedUserRepository } from './repository/shared-user.repo';
     HashingService,
     SharedUserRepository,
     TokenService,
+    EmailService,
     AuthenticationGuard,
     AccessTokenGuard,
     ApiKeyGuard,
@@ -28,6 +30,7 @@ import { SharedUserRepository } from './repository/shared-user.repo';
   exports: [
     PrismaService,
     HashingService,
+    EmailService,
     SharedUserRepository,
     TokenService,
     AuthenticationGuard,

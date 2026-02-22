@@ -12,6 +12,7 @@ import { addMilliseconds } from 'date-fns';
 import ms from 'ms';
 import envConfig from 'src/shared/config';
 import { TypeOfVerificationCode } from 'src/shared/constants/auth.constants';
+import { EmailService } from 'src/shared/email.service';
 
 @Injectable()
 export class AuthService {
@@ -22,15 +23,16 @@ export class AuthService {
     private readonly tokenService: TokenService,
     private readonly hashingService: HashingService,
     private readonly sharedUserRepository: SharedUserRepository,
+    private readonly emailService: EmailService,
   ) {}
   async register(body: RegisterBodyType) {
-    const verifiCode = await this.authRepository.findVerificationCode({
+    const verifyCode = await this.authRepository.findVerificationCode({
       email: body.email,
       code: body.code,
       type: TypeOfVerificationCode.REGISTER,
     });
 
-    if (!verifiCode) {
+    if (!verifyCode) {
       throw new UnprocessableEntityException([
         {
           message: 'Invalid or expired verification code',
@@ -39,7 +41,7 @@ export class AuthService {
       ]);
     }
 
-    if (verifiCode.expiresAt < new Date()) {
+    if (verifyCode.expiresAt < new Date()) {
       throw new UnprocessableEntityException([
         {
           message: 'Verification code has expired',
@@ -87,6 +89,18 @@ export class AuthService {
       type: body.type,
       expiresAt: addMilliseconds(new Date(), ms(envConfig.OTP_EXPIRES_IN)), // expires in 5 minutes
     });
+
+    // @todo: add domain send to emails
+    const { error } = await this.emailService.sendOTP({ code, email: body.email });
+
+    if (error) {
+      throw new UnprocessableEntityException([
+        {
+          message: 'Failed to send OTP, please try again later',
+          path: 'code',
+        },
+      ]);
+    }
 
     return verificationCode;
   }
