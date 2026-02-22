@@ -4,7 +4,7 @@ import { PrismaService } from 'src/shared/prisma.service';
 import { RolesService } from './roles.service';
 import { TokenService } from 'src/shared/token.service';
 import { RefreshTokenBodyDTO } from './auth.dto';
-import { RegisterBodyType, SendOTPBodyType } from './auth.model';
+import { LoginBodyType, RegisterBodyType, SendOTPBodyType } from './auth.model';
 import { AuthRepository } from './auth.repo';
 import { SharedUserRepository } from 'src/shared/repository/shared-user.repo';
 import { genCodeOTP } from 'src/shared/helpers';
@@ -13,6 +13,8 @@ import ms from 'ms';
 import envConfig from 'src/shared/config';
 import { TypeOfVerificationCode } from 'src/shared/constants/auth.constants';
 import { EmailService } from 'src/shared/email.service';
+import { TokenPayload } from 'src/types/auth';
+import { de } from 'zod/locales';
 
 @Injectable()
 export class AuthService {
@@ -105,12 +107,18 @@ export class AuthService {
     return verificationCode;
   }
 
-  async login(body: any) {
-    const user = await this.prismaService.user.findUniqueOrThrow({
-      where: { email: body.email },
+  async login(body: LoginBodyType & { userAgent: string; ip: string }) {
+    const user = await this.authRepository.findUniqueUserIncludeRole({
+      email: body.email,
     });
 
-    if (!user) throw new Error('user not found');
+    if (!user)
+      throw new UnprocessableEntityException([
+        {
+          message: 'User not found',
+          path: 'email',
+        },
+      ]);
 
     const isPasswordValid = await this.hashingService.comparePassword(user.password, body.password);
 
@@ -121,28 +129,36 @@ export class AuthService {
       });
     }
 
-    await this.prismaService.refreshToken.delete({
-      where: {
-        token: body.refreshToken,
-      },
+    const device = await this.authRepository.createDevice({
+      userId: user.id,
+      userAgent: body.userAgent,
+      ip: body.ip,
     });
 
-    return this.generateTokens({ userId: user.id });
+    return this.generateTokens({
+      userId: user.id,
+      deviceId: device.id,
+      roleId: user.roleId,
+      roleName: user.role.name,
+    });
   }
 
-  async generateTokens(payload: { userId: number }) {
-    const accessToken = this.tokenService.signAccessToken(payload);
+  async generateTokens(payload: TokenPayload) {
+    const accessToken = this.tokenService.signAccessToken({
+      userId: payload.userId,
+      deviceId: payload.deviceId,
+      roleId: payload.roleId,
+      roleName: payload.roleName,
+    });
     const refreshToken = this.tokenService.signRefreshToken(payload);
 
     const decodeRefToken = await this.tokenService.verifyRefreshToken(refreshToken);
 
-    await this.prismaService.refreshToken.create({
-      data: {
-        token: refreshToken,
-        deviceId: 89889,
-        userId: payload.userId,
-        expiresAt: new Date(decodeRefToken.exp * 1000),
-      },
+    await this.authRepository.createRefreshToken({
+      token: refreshToken,
+      deviceId: payload.deviceId,
+      userId: payload.userId,
+      expiresAt: new Date(decodeRefToken.exp * 1000),
     });
 
     return { accessToken, refreshToken };
