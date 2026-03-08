@@ -14,7 +14,6 @@ import envConfig from 'src/shared/config';
 import { TypeOfVerificationCode } from 'src/shared/constants/auth.constants';
 import { EmailService } from 'src/shared/email.service';
 import { TokenPayload } from 'src/types/auth';
-import { de } from 'zod/locales';
 
 @Injectable()
 export class AuthService {
@@ -120,7 +119,7 @@ export class AuthService {
         },
       ]);
 
-    const isPasswordValid = await this.hashingService.comparePassword(user.password, body.password);
+    const isPasswordValid = await this.hashingService.comparePassword(body.password, user.password);
 
     if (!isPasswordValid) {
       throw new UnprocessableEntityException({
@@ -150,7 +149,9 @@ export class AuthService {
       roleId: payload.roleId,
       roleName: payload.roleName,
     });
-    const refreshToken = this.tokenService.signRefreshToken(payload);
+    const refreshToken = this.tokenService.signRefreshToken({
+      userId: payload.userId,
+    });
 
     const decodeRefToken = await this.tokenService.verifyRefreshToken(refreshToken);
 
@@ -187,7 +188,12 @@ export class AuthService {
         },
       });
 
-      return this.generateTokens({ userId: token.userId });
+      return this.generateTokens({
+        userId: token.userId,
+        deviceId: 1,
+        roleId: 1,
+        roleName: '',
+      });
     } catch (error) {
       console.log(error);
       throw new UnprocessableEntityException({

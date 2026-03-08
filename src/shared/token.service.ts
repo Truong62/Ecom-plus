@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import envConfig from './config';
-import { RefreshTokenPayloadCreate, TokenPayload } from 'src/types/auth';
+import { AccessTokenPayload, RefreshTokenPayload, RefreshTokenPayloadCreate, TokenPayload } from 'src/types/auth';
 
 @Injectable()
 export class TokenService {
@@ -23,13 +23,13 @@ export class TokenService {
     });
   }
 
-  verifyAccessToken(token: string) {
+  verifyAccessToken(token: string): Promise<AccessTokenPayload> {
     return this.jwtService.verifyAsync(token, {
       secret: envConfig.ACCESS_TOKEN_SECRET,
     });
   }
 
-  verifyRefreshToken(token: string) {
+  verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
     return this.jwtService.verifyAsync(token, {
       secret: envConfig.REFRESH_TOKEN_SECRET,
     });
