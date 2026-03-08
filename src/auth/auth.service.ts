@@ -82,18 +82,15 @@ export class AuthService {
       ]);
     }
 
-    const code = genCodeOTP();
-    const verificationCode = await this.authRepository.createVerificationCode({
+    await this.authRepository.createVerificationCode({
       email: body.email,
-      code,
+      code: genCodeOTP(),
       type: body.type,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       expiresAt: addMilliseconds(new Date(), ms(envConfig.OTP_EXPIRES_IN)), // expires in 5 minutes
     });
 
     // @todo: add domain send to emails
-    const { error } = await this.emailService.sendOTP({ code, email: body.email });
-
+    const { error } = await this.emailService.sendOTP({ code: genCodeOTP(), email: body.email });
     if (error) {
       throw new UnprocessableEntityException([
         {
@@ -103,7 +100,7 @@ export class AuthService {
       ]);
     }
 
-    return verificationCode;
+    return { message: 'OTP sent successfully' };
   }
 
   async login(body: LoginBodyType & { userAgent: string; ip: string }) {

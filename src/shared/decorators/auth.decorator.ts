@@ -7,3 +7,5 @@ export type AuthTypeDecoratorPayLoad = { authTypes: AuthType[]; options: { condi
 export const Auth = (authTypes: AuthType[], options: { condition: ConditionGuard }) => {
   return SetMetadata(AUTH_KEY, { authTypes, options });
 };
+
+export const isPublish = () => Auth([AuthType.None], { condition: ConditionGuard.Or });

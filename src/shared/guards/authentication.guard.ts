@@ -24,8 +24,7 @@ export class AuthenticationGuard implements CanActivate {
     const authTypes = this.reflector.getAllAndOverride<AuthTypeDecoratorPayLoad | undefined>(AUTH_KEY, [
       context.getHandler(),
       context.getClass(),
-    ]) ?? { authTypes: [AuthType.None], options: { condition: ConditionGuard.And } };
-
+    ]) ?? { authTypes: [AuthType.Bearer], options: { condition: ConditionGuard.And } };
     const guards = authTypes.authTypes.map((authType) => this.authTypeGuardMap[authType]);
 
     if (authTypes.options.condition === ConditionGuard.Or) {
@@ -37,8 +36,7 @@ export class AuthenticationGuard implements CanActivate {
     }
 
     for (const guard of guards) {
-      const result = await Promise.resolve(guard.canActivate(context)).catch(() => false);
-      if (!result) return false;
+      await guard.canActivate(context);
     }
     return true;
   }
