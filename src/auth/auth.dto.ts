@@ -22,3 +22,17 @@ export class RefreshTokenBodyDTO extends createZodDto(
 export class SendOTPBodyDTO extends createZodDto(SendOTPBodySchema) {}
 export class LoginBodyDTO extends createZodDto(LoginBodySchema) {}
 export class LoginResponseDTO extends createZodDto(LoginResSchema) {}
+
+export class LogoutBodyDTO extends createZodDto(
+  z
+    .object({
+      refreshToken: z.string(),
+    })
+    .strict(),
+) {}
+
+export class MessageResDTO extends createZodDto(
+  z.object({
+    message: z.string(),
+  }),
+) {}

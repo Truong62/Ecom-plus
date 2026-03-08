@@ -3,7 +3,6 @@ import { ConflictException, Injectable, UnauthorizedException, UnprocessableEnti
 import { PrismaService } from 'src/shared/prisma.service';
 import { RolesService } from './roles.service';
 import { TokenService } from 'src/shared/token.service';
-import { RefreshTokenBodyDTO } from './auth.dto';
 import { LoginBodyType, RefreshTokenType, RegisterBodyType, SendOTPBodyType } from './auth.model';
 import { AuthRepository } from './auth.repo';
 import { SharedUserRepository } from 'src/shared/repository/shared-user.repo';
@@ -88,6 +87,7 @@ export class AuthService {
       email: body.email,
       code,
       type: body.type,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       expiresAt: addMilliseconds(new Date(), ms(envConfig.OTP_EXPIRES_IN)), // expires in 5 minutes
     });
 
@@ -210,29 +210,29 @@ export class AuthService {
     }
   }
 
-  async logout(body: RefreshTokenBodyDTO) {
+  async logout(refreshToken: string) {
     try {
-      const [_, existingToken] = await Promise.all([
-        this.tokenService.verifyRefreshToken(body.refreshToken),
-        this.prismaService.refreshToken.findUnique({
-          where: {
-            token: body.refreshToken,
-          },
-        }),
-      ]);
+      await this.tokenService.verifyRefreshToken(refreshToken);
 
-      if (!existingToken) {
-        throw new UnprocessableEntityException({
+      const tokenData = await this.authRepository.findUniqueUserIncludeUserRole({
+        token: refreshToken,
+      });
+
+      if (!tokenData) {
+        throw new UnauthorizedException({
           field: 'refreshToken',
-          error: 'Refresh token not found or already expired',
+          error: 'Refresh token not found',
         });
       }
 
-      await this.prismaService.refreshToken.delete({
-        where: {
-          token: body.refreshToken,
-        },
-      });
+      await Promise.all([
+        this.authRepository.deleteRefreshToken({
+          token: refreshToken,
+        }),
+        this.authRepository.updateDevice(tokenData.deviceId, {
+          isActive: false,
+        }),
+      ]);
 
       return { message: 'Logout successful' };
     } catch (error) {
