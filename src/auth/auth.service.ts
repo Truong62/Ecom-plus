@@ -1,10 +1,10 @@
 import { HashingService } from './../shared/hashing.service';
-import { ConflictException, Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common';
 import { PrismaService } from 'src/shared/prisma.service';
 import { RolesService } from './roles.service';
 import { TokenService } from 'src/shared/token.service';
 import { RefreshTokenBodyDTO } from './auth.dto';
-import { LoginBodyType, RegisterBodyType, SendOTPBodyType } from './auth.model';
+import { LoginBodyType, RefreshTokenType, RegisterBodyType, SendOTPBodyType } from './auth.model';
 import { AuthRepository } from './auth.repo';
 import { SharedUserRepository } from 'src/shared/repository/shared-user.repo';
 import { genCodeOTP } from 'src/shared/helpers';
@@ -165,35 +165,42 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async refreshToken(body: RefreshTokenBodyDTO) {
+  async refreshToken({ refreshToken, userAgent, ip }: RefreshTokenType & { userAgent: string; ip: string }) {
     try {
-      const token = await this.tokenService.verifyRefreshToken(body.refreshToken);
+      const token = await this.tokenService.verifyRefreshToken(refreshToken);
 
-      const existingToken = await this.prismaService.refreshToken.findUnique({
-        where: {
-          token: body.refreshToken,
-        },
+      const existingToken = await this.authRepository.findUniqueUserIncludeUserRole({
+        token: refreshToken,
       });
 
       if (!existingToken) {
-        throw new UnprocessableEntityException({
+        throw new UnauthorizedException({
           field: 'refreshToken',
           error: 'Refresh token not found or already expired',
         });
       }
 
-      await this.prismaService.refreshToken.delete({
+      const $updateDevice = this.authRepository.createDevice({
+        userId: token.userId,
+        userAgent,
+        ip,
+      });
+
+      const $deleteOldToken = this.prismaService.refreshToken.delete({
         where: {
-          token: body.refreshToken,
+          token: refreshToken,
         },
       });
 
-      return this.generateTokens({
+      const $token = this.generateTokens({
         userId: token.userId,
-        deviceId: 1,
-        roleId: 1,
-        roleName: '',
+        deviceId: existingToken.deviceId,
+        roleId: existingToken.user.roleId,
+        roleName: existingToken.user.role.name,
       });
+
+      const results = await Promise.all([$token, $updateDevice, $deleteOldToken]);
+      return results[0];
     } catch (error) {
       console.log(error);
       throw new UnprocessableEntityException({

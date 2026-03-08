@@ -70,6 +70,15 @@ export type RefreshTokenType = z.infer<typeof RefreshTokenSchema>;
 export const RefreshTokenResponseSchema = LoginResSchema;
 export type RefreshTokenResponseType = z.infer<typeof RefreshTokenResponseSchema>;
 
+export const RefreshTokenModelSchema = z.object({
+  token: z.string(),
+  userId: z.number(),
+  deviceId: z.number(),
+  expiresAt: z.date(),
+  createdAt: z.date(),
+});
+export type RefreshTokenModelType = z.infer<typeof RefreshTokenModelSchema>;
+
 export const DeviceSchema = z.object({
   id: z.number(),
   userId: z.number(),
