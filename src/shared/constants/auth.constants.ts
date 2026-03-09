@@ -15,3 +15,16 @@ export const ConditionGuard = {
 } as const;
 
 export type ConditionGuard = (typeof ConditionGuard)[keyof typeof ConditionGuard];
+
+export const TypeOfVerificationCode = {
+  REGISTER: 'REGISTER',
+  FORGOT_PASSWORD: 'FORGOT_PASSWORD',
+  LOGIN: 'LOGIN',
+  DISABLE_2FA: 'DISABLE_2FA',
+} as const;
+
+export const UserStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  BLOCKED: 'BLOCKED',
+};

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mã xác thực OTP</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+
+  <!-- Mesh Gradient Background -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(145deg, #0c0a1a 0%, #1a0e2e 25%, #0f1629 50%, #0a1628 75%, #0c0a1a 100%); padding: 60px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width: 480px; width: 100%;">
+
+          <!-- Floating Logo -->
+          <tr>
+            <td align="center" style="padding: 0 0 40px;">
+              <table role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px 28px;">
+                    <span style="font-size: 20px; font-weight: 800; letter-spacing: 4px; color: #ffffff;">
+                      Sa<span style="background: linear-gradient(135deg, #7c3aed, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Russ</span>
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Glass Card -->
+          <tr>
+            <td>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; overflow: hidden;">
+
+                <!-- Glow Top -->
+                <tr>
+                  <td style="height: 2px; background: linear-gradient(90deg, transparent 0%, #7c3aed 30%, #06b6d4 70%, transparent 100%);"></td>
+                </tr>
+
+                <!-- Greeting -->
+                <tr>
+                  <td style="padding: 48px 44px 0; text-align: center;">
+                    <p style="margin: 0; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 3px; color: #7c3aed;">
+                      Xác thực bảo mật
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Main Heading -->
+                <tr>
+                  <td style="padding: 16px 44px 0; text-align: center;">
+                    <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #ffffff; line-height: 1.3;">
+                      Mã xác thực<br/>tài khoản của bạn
+                    </h1>
+                  </td>
+                </tr>
+
+                <!-- Subtitle -->
+                <tr>
+                  <td style="padding: 16px 44px 36px; text-align: center;">
+                    <p style="margin: 0; font-size: 14px; color: rgba(255,255,255,0.45); line-height: 1.7;">
+                      Nhập mã bên dưới để hoàn tất xác thực. Mã này chỉ sử dụng được một lần.
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- OTP Display -->
+                <tr>
+                  <td style="padding: 0 44px;" align="center">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="background: linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(6,182,212,0.12) 100%); border: 1px solid rgba(124,58,237,0.2); border-radius: 20px; padding: 8px;">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td style="background: rgba(0,0,0,0.3); border-radius: 14px; padding: 32px 24px; text-align: center;">
+                                <span style="font-size: 42px; font-weight: 800; letter-spacing: 14px; color: #ffffff; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;">
+                                  {{OTP_CODE}}
+                                </span>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Timer Badge -->
+                <tr>
+                  <td align="center" style="padding: 20px 44px 0;">
+                    <table role="presentation" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.15); border-radius: 100px; padding: 8px 20px;">
+                          <span style="font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.5);">
+                            &#9200;&nbsp; Hết hạn sau <span style="color: #a78bfa; font-weight: 700;">{{EXPIRY_TIME}}</span>
+                          </span>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Steps Guide -->
+                <tr>
+                  <td style="padding: 36px 44px 0;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <!-- Step 1 -->
+                      <tr>
+                        <td style="padding: 14px 0; border-top: 1px solid rgba(255,255,255,0.06);">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td width="36" valign="top">
+                                <table role="presentation" cellpadding="0" cellspacing="0">
+                                  <tr>
+                                    <td style="width: 28px; height: 28px; background: rgba(124,58,237,0.15); border-radius: 8px; text-align: center; vertical-align: middle; font-size: 12px; font-weight: 700; color: #a78bfa; line-height: 28px;">
+                                      1
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                              <td style="padding-left: 12px;">
+                                <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.5;">
+                                  Sao chép mã OTP ở trên
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                      <!-- Step 2 -->
+                      <tr>
+                        <td style="padding: 14px 0; border-top: 1px solid rgba(255,255,255,0.06);">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td width="36" valign="top">
+                                <table role="presentation" cellpadding="0" cellspacing="0">
+                                  <tr>
+                                    <td style="width: 28px; height: 28px; background: rgba(6,182,212,0.15); border-radius: 8px; text-align: center; vertical-align: middle; font-size: 12px; font-weight: 700; color: #22d3ee; line-height: 28px;">
+                                      2
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                              <td style="padding-left: 12px;">
+                                <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.5;">
+                                  Quay lại trang xác thực và nhập mã
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                      <!-- Step 3 -->
+                      <tr>
+                        <td style="padding: 14px 0; border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06);">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td width="36" valign="top">
+                                <table role="presentation" cellpadding="0" cellspacing="0">
+                                  <tr>
+                                    <td style="width: 28px; height: 28px; background: rgba(16,185,129,0.15); border-radius: 8px; text-align: center; vertical-align: middle; font-size: 12px; font-weight: 700; color: #34d399; line-height: 28px;">
+                                      3
+                                    </td>
+                                  </tr>
+                                </table>
+                              </td>
+                              <td style="padding-left: 12px;">
+                                <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.5;">
+                                  Tài khoản được xác thực thành công
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Security Warning -->
+                <tr>
+                  <td style="padding: 32px 44px 44px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      <tr>
+                        <td style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.1); border-radius: 14px; padding: 18px 20px;">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td width="24" valign="top" style="padding-top: 1px;">
+                                <span style="font-size: 14px;">&#9888;</span>
+                              </td>
+                              <td style="padding-left: 10px;">
+                                <p style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.35); line-height: 1.7;">
+                                  <strong style="color: rgba(251,191,36,0.8);">Lưu ý bảo mật:</strong> Không chia sẻ mã này với bất kỳ ai. SaRuss sẽ không bao giờ yêu cầu mã OTP của bạn.
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 36px 24px 0; text-align: center;">
+              <p style="margin: 0 0 12px; font-size: 11px; color: rgba(255,255,255,0.2); line-height: 1.8;">
+                Bạn nhận được email này vì có yêu cầu xác thực tài khoản.<br/>
+                Nếu bạn không thực hiện yêu cầu này, hãy bỏ qua email này.
+              </p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                <tr>
+                  <td style="padding: 0 8px;">
+                    <a href="https://ngoctruong.click" style="color: rgba(255,255,255,0.25); text-decoration: none; font-size: 11px;">Website</a>
+                  </td>
+                  <td style="color: rgba(255,255,255,0.1); font-size: 11px;">|</td>
+                  <td style="padding: 0 8px;">
+                    <span style="color: rgba(255,255,255,0.25); font-size: 11px;">Privacy</span>
+                  </td>
+                  <td style="color: rgba(255,255,255,0.1); font-size: 11px;">|</td>
+                  <td style="padding: 0 8px;">
+                    <span style="color: rgba(255,255,255,0.25); font-size: 11px;">Support</span>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 16px 0 0; font-size: 10px; color: rgba(255,255,255,0.12);">
+                &copy; 2026 Nguyen Ngoc Truong. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
