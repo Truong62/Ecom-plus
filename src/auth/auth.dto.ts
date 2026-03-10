@@ -36,3 +36,9 @@ export class MessageResDTO extends createZodDto(
     message: z.string(),
   }),
 ) {}
+
+export class GetAuthorizationUrlResDTO extends createZodDto(
+  z.object({
+    url: z.string(),
+  }),
+) {}
