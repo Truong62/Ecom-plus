@@ -67,6 +67,8 @@ export class GoogleService {
       });
 
       const { data } = await oauth2.userinfo.get();
+      console.log(data);
+
       if (!data?.email) throw new Error('Failed to retrieve email from Google account');
       let user = await this.authRepository.findUniqueUserIncludeRole({
         email: data.email,

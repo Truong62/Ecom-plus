@@ -71,7 +71,7 @@ export class AuthController {
     });
   }
 
-  @Get('oauth-google-callback')
+  @Get('google/callback')
   @isPublish()
   async googleCallBack(@Query() query: { code: string; state: string }, @Res() res: Response) {
     try {
