@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Ip, Post, Query, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   GetAuthorizationUrlResDTO,
@@ -14,6 +14,8 @@ import { ZodSerializerDto } from 'nestjs-zod';
 import { UserAgent } from 'src/shared/decorators/user-agent.decorator';
 import { isPublish } from 'src/shared/decorators/auth.decorator';
 import { GoogleService } from './google.service';
+import envConfig from '../shared/config';
+import type { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -67,5 +69,19 @@ export class AuthController {
       userAgent,
       ip,
     });
+  }
+
+  @Get('oauth-google-callback')
+  @isPublish()
+  async googleCallBack(@Query() query: { code: string; state: string }, @Res() res: Response) {
+    try {
+      const data = await this.googleService.googleCallback({ code: query.code, state: query.state });
+      return res.redirect(
+        `${envConfig.GOOGLE_CLIENT_REDIRECT_URI}?accessToken=${data.accessToken}&refreshToken=${data.refreshToken}`,
+      );
+    } catch (e) {
+      console.error(e);
+      return res.redirect(`${envConfig.GOOGLE_CLIENT_REDIRECT_URI}?errorMessage=${e}`);
+    }
   }
 }

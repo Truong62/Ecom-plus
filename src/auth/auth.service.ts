@@ -1,4 +1,4 @@
-import { HashingService } from './../shared/hashing.service';
+import { HashingService } from '../shared/hashing.service';
 import { ConflictException, Injectable, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common';
 import { PrismaService } from 'src/shared/prisma.service';
 import { RolesService } from './roles.service';
