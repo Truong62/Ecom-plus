@@ -45,7 +45,12 @@ export const SendOTPBodySchema = VerificationCode.pick({
 export const LoginBodySchema = UserSchema.pick({
   email: true,
   password: true,
-}).strict();
+})
+  .extend({
+    totpSecret: z.string().length(6).optional(),
+    code: z.string().length(6).optional(),
+  })
+  .strict();
 
 export const LoginResSchema = z.object({
   refreshToken: z.string(),
@@ -108,6 +113,33 @@ export const ForgotPasswordBodySchema = z
     }
   });
 
+export const DisableTwoFactorBodySchema = z
+  .object({
+    totpCode: z.string().length(6).optional(),
+    code: z.string().length(6).optional(),
+  })
+  .superRefine(({ code, totpCode }, ctx) => {
+    if ((totpCode !== undefined) === (code !== undefined)) {
+      ctx.addIssue({
+        path: ['totpCode'],
+        code: 'custom',
+        message: 'Not post 2 field',
+      });
+
+      ctx.addIssue({
+        path: ['code'],
+        code: 'custom',
+        message: 'Not post 2 field',
+      });
+    }
+  });
+export const TwoFactorSetupResponseSchema = z.object({
+  secret: z.string(),
+  uri: z.string(),
+});
+
+export type TwoFactorSetupResponseType = z.infer<typeof TwoFactorSetupResponseSchema>;
+export type DisableTwoFactorBodyType = z.infer<typeof DisableTwoFactorBodySchema>;
 export type RegisterBodyType = z.infer<typeof RegisterBodySchema>;
 export type VerificationCodeType = z.infer<typeof VerificationCode>;
 export type SendOTPBodyType = z.infer<typeof SendOTPBodySchema>;

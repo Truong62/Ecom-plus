@@ -9,6 +9,7 @@ import {
   RefreshTokenType,
   RegisterBodyType,
   SendOTPBodyType,
+  TwoFactorSetupResponseType,
 } from './auth.model';
 import { AuthRepository } from './auth.repo';
 import { SharedUserRepository } from 'src/shared/repository/shared-user.repo';
@@ -19,6 +20,8 @@ import envConfig from 'src/shared/config';
 import { TypeOfVerificationCode } from 'src/shared/constants/auth.constants';
 import { EmailService } from 'src/shared/email.service';
 import { TokenPayload } from 'src/types/auth';
+import { TOTPAlreadyEnabledException } from './error.model';
+import { TwoFactorAuthService } from '../shared/TwoFa.service';
 
 @Injectable()
 export class AuthService {
@@ -30,6 +33,7 @@ export class AuthService {
     private readonly hashingService: HashingService,
     private readonly sharedUserRepository: SharedUserRepository,
     private readonly emailService: EmailService,
+    private readonly twoFactorAuthService: TwoFactorAuthService,
   ) {}
   async register(body: RegisterBodyType) {
     const verifyCode = await this.authRepository.findVerificationCode({
@@ -105,15 +109,16 @@ export class AuthService {
       ]);
     }
 
+    const code = genCodeOTP();
     await this.authRepository.createVerificationCode({
       email: body.email,
-      code: genCodeOTP(),
+      code,
       type: body.type,
       expiresAt: addMilliseconds(new Date(), ms(envConfig.OTP_EXPIRES_IN)), // expires in 5 minutes
     });
 
     // @todo: add domain send to emails
-    const { error } = await this.emailService.sendOTP({ code: genCodeOTP(), email: body.email });
+    const { error } = await this.emailService.sendOTP({ code, email: body.email });
     if (error) {
       throw new UnprocessableEntityException([
         {
@@ -265,7 +270,7 @@ export class AuthService {
   }
 
   async forgotPassword(body: ForgotPasswordBodyType) {
-    const { email, newPassword, confirmNewPassword, code } = body;
+    const { email, newPassword, code } = body;
 
     const user = await this.sharedUserRepository.findUnique({ email });
 
@@ -277,8 +282,8 @@ export class AuthService {
 
     const verifyCode = await this.authRepository.findVerificationCode({
       email: body.email,
-      code: body.code,
-      type: TypeOfVerificationCode.REGISTER,
+      code,
+      type: TypeOfVerificationCode.FORGOT_PASSWORD,
     });
 
     if (!verifyCode) {
@@ -316,6 +321,32 @@ export class AuthService {
 
     return {
       message: 'Forgot password successfully',
+    };
+  }
+
+  async setupTwoFactorAuth(userId: number): Promise<TwoFactorSetupResponseType> {
+    const user = await this.sharedUserRepository.findUnique({ id: userId });
+
+    if (!user) {
+      throw new UnprocessableEntityException({
+        field: 'userId',
+        error: 'User not found',
+      });
+    }
+
+    if (user.totpSecret) throw TOTPAlreadyEnabledException;
+
+    const { uri, secret } = this.twoFactorAuthService.generateTOTP(user.email);
+    await this.authRepository.updateUser(
+      {
+        id: userId,
+      },
+      { totpSecret: secret },
+    );
+
+    return {
+      uri,
+      secret,
     };
   }
 

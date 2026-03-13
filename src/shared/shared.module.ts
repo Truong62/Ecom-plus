@@ -9,6 +9,7 @@ import { ApiKeyGuard } from './guards/api-key.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { SharedUserRepository } from './repository/shared-user.repo';
 import { EmailService } from './email.service';
+import { TwoFactorAuthService } from './TwoFa.service';
 
 @Global()
 @Module({
@@ -16,6 +17,7 @@ import { EmailService } from './email.service';
   providers: [
     PrismaService,
     HashingService,
+    TwoFactorAuthService,
     SharedUserRepository,
     TokenService,
     EmailService,
@@ -31,6 +33,7 @@ import { EmailService } from './email.service';
     PrismaService,
     HashingService,
     EmailService,
+    TwoFactorAuthService,
     SharedUserRepository,
     TokenService,
     AuthenticationGuard,
