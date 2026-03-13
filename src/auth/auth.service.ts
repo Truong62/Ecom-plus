@@ -20,7 +20,7 @@ import envConfig from 'src/shared/config';
 import { TypeOfVerificationCode } from 'src/shared/constants/auth.constants';
 import { EmailService } from 'src/shared/email.service';
 import { TokenPayload } from 'src/types/auth';
-import { TOTPAlreadyEnabledException } from './error.model';
+import { InvalidTOTPCodeException, TOTPAlreadyEnabledException } from './error.model';
 import { TwoFactorAuthService } from '../shared/TwoFa.service';
 
 @Injectable()
@@ -151,6 +151,50 @@ export class AuthService {
         filed: 'password',
         error: 'password is incorrect',
       });
+    }
+
+    if (user.totpSecret) {
+      if (user.totpSecret && !body.code) throw InvalidTOTPCodeException;
+
+      if (body.totpCode) {
+        const isValid = this.twoFactorAuthService.verifyTOTP({
+          email: user.email,
+          secret: user.totpSecret,
+          token: body.totpCode,
+        });
+
+        if (!isValid) throw InvalidTOTPCodeException;
+      } else if (body.code) {
+        const verifyCode = await this.authRepository.findVerificationCode({
+          email: user.email,
+          code: body.code,
+          type: TypeOfVerificationCode.LOGIN,
+        });
+
+        if (!verifyCode) {
+          throw new UnprocessableEntityException([
+            {
+              message: 'Invalid or expired verification code',
+              path: 'code',
+            },
+          ]);
+        }
+
+        if (verifyCode.expiresAt < new Date()) {
+          throw new UnprocessableEntityException([
+            {
+              message: 'Verification code has expired',
+              path: 'code',
+            },
+          ]);
+        }
+
+        await this.authRepository.deleteVerificationCode({
+          email: user.email,
+          code: body.code,
+          type: TypeOfVerificationCode.LOGIN,
+        });
+      }
     }
 
     const device = await this.authRepository.createDevice({

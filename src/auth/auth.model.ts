@@ -47,7 +47,7 @@ export const LoginBodySchema = UserSchema.pick({
   password: true,
 })
   .extend({
-    totpSecret: z.string().length(6).optional(),
+    totpCode: z.string().length(6).optional(),
     code: z.string().length(6).optional(),
   })
   .strict();
