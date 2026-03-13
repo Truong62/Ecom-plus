@@ -32,43 +32,33 @@ export const RegisterBodySchema = UserSchema.pick({
     }
   });
 
-export type RegisterBodyType = z.infer<typeof RegisterBodySchema>;
-
 export const RegisterResponseSchema = UserSchema.omit({
   password: true,
   totpSecret: true,
 });
-
-export type VerificationCodeType = z.infer<typeof VerificationCode>;
 
 export const SendOTPBodySchema = VerificationCode.pick({
   email: true,
   type: true,
 });
 
-export type SendOTPBodyType = z.infer<typeof SendOTPBodySchema>;
-export type TypeOfVerificationCode = (typeof TypeOfVerificationCode)[keyof typeof TypeOfVerificationCode];
-
 export const LoginBodySchema = UserSchema.pick({
   email: true,
   password: true,
 }).strict();
-export type LoginBodyType = z.infer<typeof LoginBodySchema>;
 
 export const LoginResSchema = z.object({
   refreshToken: z.string(),
   accessToken: z.string(),
 });
-export type LoginResType = z.infer<typeof LoginResSchema>;
 
 export const RefreshTokenSchema = z
   .object({
     refreshToken: z.string(),
   })
   .strict();
-export type RefreshTokenType = z.infer<typeof RefreshTokenSchema>;
+
 export const RefreshTokenResponseSchema = LoginResSchema;
-export type RefreshTokenResponseType = z.infer<typeof RefreshTokenResponseSchema>;
 
 export const RefreshTokenModelSchema = z.object({
   token: z.string(),
@@ -77,7 +67,6 @@ export const RefreshTokenModelSchema = z.object({
   expiresAt: z.date(),
   createdAt: z.date(),
 });
-export type RefreshTokenModelType = z.infer<typeof RefreshTokenModelSchema>;
 
 export const DeviceSchema = z.object({
   id: z.number(),
@@ -88,8 +77,6 @@ export const DeviceSchema = z.object({
   createdAt: z.date(),
   isActive: z.boolean(),
 });
-
-export type DeviceType = z.infer<typeof DeviceSchema>;
 
 export const RoleSchema = z.object({
   id: z.number(),
@@ -102,8 +89,6 @@ export const RoleSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
-
-export type RoleType = z.infer<typeof RoleSchema>;
 
 export const ForgotPasswordBodySchema = z
   .object({
@@ -123,4 +108,15 @@ export const ForgotPasswordBodySchema = z
     }
   });
 
+export type RegisterBodyType = z.infer<typeof RegisterBodySchema>;
+export type VerificationCodeType = z.infer<typeof VerificationCode>;
+export type SendOTPBodyType = z.infer<typeof SendOTPBodySchema>;
+export type TypeOfVerificationCode = (typeof TypeOfVerificationCode)[keyof typeof TypeOfVerificationCode];
+export type LoginBodyType = z.infer<typeof LoginBodySchema>;
+export type LoginResType = z.infer<typeof LoginResSchema>;
+export type RefreshTokenType = z.infer<typeof RefreshTokenSchema>;
+export type RefreshTokenResponseType = z.infer<typeof RefreshTokenResponseSchema>;
+export type RefreshTokenModelType = z.infer<typeof RefreshTokenModelSchema>;
+export type DeviceType = z.infer<typeof DeviceSchema>;
+export type RoleType = z.infer<typeof RoleSchema>;
 export type ForgotPasswordBodyType = z.infer<typeof ForgotPasswordBodySchema>;

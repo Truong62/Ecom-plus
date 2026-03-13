@@ -116,4 +116,26 @@ export class AuthRepository {
       where: uniqueObj,
     });
   }
+
+  async updateUser(where: { id: number } | { email: string }, data: Partial<Omit<User, 'id'>>): Promise<User> {
+    return this.prismaService.user.update({
+      where,
+      data,
+    });
+  }
+
+  async deleteVerificationCode(where: {
+    email: string;
+    code: string;
+    type: TypeOfVerificationCode;
+  }): Promise<VerificationCodeType> {
+    return this.prismaService.verificationCode.delete({
+      where: {
+        email_type: {
+          email: where.email,
+          type: where.type,
+        },
+      },
+    });
+  }
 }

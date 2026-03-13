@@ -3,7 +3,13 @@ import { ConflictException, Injectable, UnauthorizedException, UnprocessableEnti
 import { PrismaService } from 'src/shared/prisma.service';
 import { RolesService } from './roles.service';
 import { TokenService } from 'src/shared/token.service';
-import { LoginBodyType, RefreshTokenType, RegisterBodyType, SendOTPBodyType } from './auth.model';
+import {
+  ForgotPasswordBodyType,
+  LoginBodyType,
+  RefreshTokenType,
+  RegisterBodyType,
+  SendOTPBodyType,
+} from './auth.model';
 import { AuthRepository } from './auth.repo';
 import { SharedUserRepository } from 'src/shared/repository/shared-user.repo';
 import { genCodeOTP } from 'src/shared/helpers';
@@ -55,11 +61,19 @@ export class AuthService {
     const { confirmPassword: _, code: __, ...registerData } = body;
 
     try {
-      return await this.authRepository.createUser({
-        ...registerData,
-        password: hashedPassword,
-        roleId: clientRoleId,
-      });
+      const [user] = await Promise.all([
+        this.authRepository.createUser({
+          ...registerData,
+          password: hashedPassword,
+          roleId: clientRoleId,
+        }),
+        this.authRepository.deleteVerificationCode({
+          email: body.email,
+          code: body.code,
+          type: TypeOfVerificationCode.REGISTER,
+        }),
+      ]);
+      return user;
     } catch (e) {
       console.log(e);
       if (e.meta?.target?.includes('email')) {
@@ -73,10 +87,19 @@ export class AuthService {
   async sendOtp(body: SendOTPBodyType) {
     const user = await this.sharedUserRepository.findUnique({ email: body.email });
 
-    if (user) {
+    if (body.type === TypeOfVerificationCode.REGISTER && user) {
       throw new UnprocessableEntityException([
         {
           message: 'Email already exists',
+          path: 'email',
+        },
+      ]);
+    }
+
+    if (body.type === TypeOfVerificationCode.REGISTER && !user) {
+      throw new UnprocessableEntityException([
+        {
+          message: 'Email not found',
           path: 'email',
         },
       ]);
@@ -239,6 +262,61 @@ export class AuthService {
         error: error.message,
       });
     }
+  }
+
+  async forgotPassword(body: ForgotPasswordBodyType) {
+    const { email, newPassword, confirmNewPassword, code } = body;
+
+    const user = await this.sharedUserRepository.findUnique({ email });
+
+    if (!user)
+      throw new UnprocessableEntityException({
+        field: 'email',
+        error: 'User not found',
+      });
+
+    const verifyCode = await this.authRepository.findVerificationCode({
+      email: body.email,
+      code: body.code,
+      type: TypeOfVerificationCode.REGISTER,
+    });
+
+    if (!verifyCode) {
+      throw new UnprocessableEntityException([
+        {
+          message: 'Invalid or expired verification code',
+          path: 'code',
+        },
+      ]);
+    }
+
+    if (verifyCode.expiresAt < new Date()) {
+      throw new UnprocessableEntityException([
+        {
+          message: 'Verification code has expired',
+          path: 'code',
+        },
+      ]);
+    }
+
+    const hashedPassword = await this.hashingService.hashPassword(newPassword);
+    await Promise.all([
+      this.authRepository.updateUser(
+        { id: user.id },
+        {
+          password: hashedPassword,
+        },
+      ),
+      this.authRepository.deleteVerificationCode({
+        email: body.email,
+        code: body.code,
+        type: TypeOfVerificationCode.FORGOT_PASSWORD,
+      }),
+    ]);
+
+    return {
+      message: 'Forgot password successfully',
+    };
   }
 
   async logoutAll(userId: number) {
