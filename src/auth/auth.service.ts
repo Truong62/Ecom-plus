@@ -4,6 +4,7 @@ import { PrismaService } from 'src/shared/prisma.service';
 import { RolesService } from './roles.service';
 import { TokenService } from 'src/shared/token.service';
 import {
+  DisableTwoFactorBodyType,
   ForgotPasswordBodyType,
   LoginBodyType,
   RefreshTokenType,
@@ -392,6 +393,61 @@ export class AuthService {
       uri,
       secret,
     };
+  }
+
+  async disableTwoFA(data: DisableTwoFactorBodyType & { userId: number }) {
+    const user = await this.sharedUserRepository.findUnique({ id: data.userId });
+    if (!user) {
+      throw new UnprocessableEntityException({
+        field: 'userId',
+        error: 'User not found',
+      });
+    }
+
+    if (!user.totpSecret) throw TOTPAlreadyEnabledException;
+
+    if (data.totpCode) {
+      const isvalid = this.twoFactorAuthService.verifyTOTP({
+        email: user.email,
+        secret: user.totpSecret,
+        token: data.totpCode,
+      });
+
+      if (!isvalid) throw InvalidTOTPCodeException;
+    } else if (data.code) {
+      const verifyCode = await this.authRepository.findVerificationCode({
+        email: user.email,
+        code: data.code,
+        type: TypeOfVerificationCode.DISABLE_2FA,
+      });
+
+      if (!verifyCode) {
+        throw new UnprocessableEntityException([
+          {
+            message: 'Invalid or expired verification code',
+            path: 'code',
+          },
+        ]);
+      }
+
+      if (verifyCode.expiresAt < new Date()) {
+        throw new UnprocessableEntityException([
+          {
+            message: 'Verification code has expired',
+            path: 'code',
+          },
+        ]);
+      }
+
+      await this.authRepository.deleteVerificationCode({
+        email: user.email,
+        code: data.code,
+        type: TypeOfVerificationCode.LOGIN,
+      });
+    }
+
+    await this.authRepository.updateUser({ id: user.id }, { totpSecret: null });
+    return { message: 'Two-factor authentication disabled successfully' };
   }
 
   async logoutAll(userId: number) {
