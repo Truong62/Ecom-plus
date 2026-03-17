@@ -155,7 +155,7 @@ export class AuthService {
     }
 
     if (user.totpSecret) {
-      if (user.totpSecret && !body.code) throw InvalidTOTPCodeException;
+      if (!user.totpSecret && !body.code) throw InvalidTOTPCodeException;
 
       if (body.totpCode) {
         const isValid = this.twoFactorAuthService.verifyTOTP({

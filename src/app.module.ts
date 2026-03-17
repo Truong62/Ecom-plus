@@ -8,9 +8,10 @@ import MyZodValidationPipe from './shared/pipes/customZodValidation';
 import { PrismaExceptionFilter } from './shared/filter/http-exception.filter';
 import { ZodSerializerInterceptor } from 'nestjs-zod';
 import { TransformInterceptor } from './shared/interceptor/transform.interceptor';
+import { LanguageModule } from './language/language.module';
 
 @Module({
-  imports: [SharedModule, AuthModule],
+  imports: [SharedModule, AuthModule, LanguageModule],
   controllers: [AppController],
   providers: [
     AppService,
