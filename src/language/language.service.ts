@@ -13,15 +13,11 @@ export class LanguageService {
     return await this.languageRepository.getAll();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} language`;
+  update(id: string, data: CreateLanguageBodyTypes, userId: number) {
+    return this.languageRepository.update(id, data, userId);
   }
 
-  update(id: number, updateLanguageDto) {
-    return `This action updates a #${id} language`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} language`;
+  remove(id: string) {
+    return this.languageRepository.delete(id);
   }
 }

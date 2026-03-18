@@ -19,4 +19,18 @@ export class LanguageRepository {
       },
     });
   }
+
+  update(id: string, data: CreateLanguageBodyTypes, userId: number) {
+    return this.prismaService.language.update({
+      where: { id },
+      data: {
+        ...data,
+        updatedById: userId,
+      },
+    });
+  }
+
+  delete(id: string) {
+    return this.prismaService.language.delete({ where: { id } });
+  }
 }
