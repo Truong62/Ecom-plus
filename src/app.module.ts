@@ -9,9 +9,10 @@ import { PrismaExceptionFilter } from './shared/filter/http-exception.filter';
 import { ZodSerializerInterceptor } from 'nestjs-zod';
 import { TransformInterceptor } from './shared/interceptor/transform.interceptor';
 import { LanguageModule } from './language/language.module';
+import { PermissionModule } from './permission/permission.module';
 
 @Module({
-  imports: [SharedModule, AuthModule, LanguageModule],
+  imports: [SharedModule, AuthModule, LanguageModule, PermissionModule],
   controllers: [AppController],
   providers: [
     AppService,
