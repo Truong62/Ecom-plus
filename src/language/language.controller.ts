@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
 import { LanguageService } from './language.service';
 import { LanguagesTypes } from './language.model';
 import { CreateLanguageDTO } from './language.dto';
